@@ -81,6 +81,20 @@
     { color: 'green', value: 1 },
   ],
 
+  // Storage utilization: green -> yellow@75 -> red@90
+  storage: [
+    { color: 'green', value: null },
+    { color: '#EAB839', value: 75 },
+    { color: 'red', value: 90 },
+  ],
+
+  // Subtle background thresholds for table cells (storage)
+  tableBgStorage: [
+    { color: 'rgba(50, 172, 45, 0.2)', value: null },
+    { color: 'rgba(237, 129, 40, 0.2)', value: 75 },
+    { color: 'rgba(245, 54, 54, 0.2)', value: 90 },
+  ],
+
   // Subtle background thresholds for table cells (memory)
   tableBgMemory: [
     { color: 'rgba(50, 172, 45, 0.2)', value: null },

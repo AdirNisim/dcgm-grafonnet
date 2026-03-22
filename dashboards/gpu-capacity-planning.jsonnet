@@ -12,6 +12,7 @@ local health = import '../lib/panels/health.libsonnet';
 local inventory = import '../lib/panels/inventory.libsonnet';
 local load = import '../lib/panels/load.libsonnet';
 local memory = import '../lib/panels/memory.libsonnet';
+local storage = import '../lib/panels/storage.libsonnet';
 local workload = import '../lib/panels/workload.libsonnet';
 
 // --- Variables ---
@@ -53,7 +54,7 @@ local gpuModelVar =
 g.dashboard.new('GPU Capacity Planning Dashboard')
 + g.dashboard.withUid('gpu-capacity-planning')
 + g.dashboard.withDescription('AI Workload Capacity Planning — stack-level ordering: Nodes → Platform → Namespace → Workload')
-+ g.dashboard.withTags(['gpu', 'capacity-planning', 'mig', 'dcgm', 'ai-workloads', 'memory'])
++ g.dashboard.withTags(['gpu', 'capacity-planning', 'mig', 'dcgm', 'ai-workloads', 'memory', 'storage', 'pvc', 'trident'])
 + g.dashboard.withEditable(true)
 + g.dashboard.withLiveNow(true)
 + g.dashboard.time.withFrom('now-6h')
@@ -76,4 +77,5 @@ g.dashboard.new('GPU Capacity Planning Dashboard')
   + memory.panels  // 4. Memory    — VRAM capacity planning per node + namespace
   + deployment.panels  // 5. Namespace — CPU & RAM by deployment (kube-state-metrics)
   + workload.panels  // 6. Workload  — per-workload GPU usage table + compute over time
+  + storage.panels  // 7. Storage   — node disk, PV/PVC usage, Trident backend capacity
 )
