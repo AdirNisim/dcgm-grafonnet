@@ -1,7 +1,7 @@
 // PromQL queries for GPU capacity planning dashboard.
 // All expressions are strings, referenced by panel definitions.
 {
-  // --- Memory summary (cluster-wide) ---
+  // --- VRAM summary (cluster-wide) ---
   totalMemoryCapacity:
     'sum(DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE) / 1024',
 
@@ -25,7 +25,7 @@
   avgPower:
     'avg(DCGM_FI_DEV_POWER_USAGE)',
 
-  // --- Memory by device — per-node panels (Hostname=~"$hostname") ---
+  // --- VRAM by device — per-node panels (Hostname=~"$hostname") ---
   // Whole GPUs only: clean legend without MIG ID noise
   memoryUtilWholeGPU: |||
     avg by (gpu, Hostname, modelName, UUID) (

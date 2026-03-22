@@ -47,7 +47,7 @@ local ds = '${datasource}';
       + prometheus.withRefId('D'),
     ])
     + table.options.withShowHeader(true)
-    + table.options.withSortBy([{ desc: true, displayName: 'RAM Used (MiB)' }])
+    + table.options.withSortBy([{ desc: true, displayName: 'Node RAM Used (MiB)' }])
     + table.standardOptions.withOverrides([
       table.standardOptions.override.byName.new('CPU Used (m)')
       + table.standardOptions.override.byName.withPropertiesFromOptions(
@@ -61,13 +61,13 @@ local ds = '${datasource}';
         + table.standardOptions.withDecimals(0)
         + table.fieldConfig.defaults.custom.withWidth(160)
       ),
-      table.standardOptions.override.byName.new('RAM Used (MiB)')
+      table.standardOptions.override.byName.new('Node RAM Used (MiB)')
       + table.standardOptions.override.byName.withPropertiesFromOptions(
         table.standardOptions.withUnit('decmbytes')
         + table.standardOptions.withDecimals(0)
         + table.fieldConfig.defaults.custom.withWidth(140)
       ),
-      table.standardOptions.override.byName.new('RAM Requested (MiB)')
+      table.standardOptions.override.byName.new('Node RAM Requested (MiB)')
       + table.standardOptions.override.byName.withPropertiesFromOptions(
         table.standardOptions.withUnit('decmbytes')
         + table.standardOptions.withDecimals(0)
@@ -102,8 +102,8 @@ local ds = '${datasource}';
               namespace: 'Namespace',
               'Value #A': 'CPU Used (m)',
               'Value #B': 'CPU Requested (m)',
-              'Value #C': 'RAM Used (MiB)',
-              'Value #D': 'RAM Requested (MiB)',
+              'Value #C': 'Node RAM Used (MiB)',
+              'Value #D': 'Node RAM Requested (MiB)',
             },
           },
         },

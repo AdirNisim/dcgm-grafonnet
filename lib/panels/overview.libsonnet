@@ -77,7 +77,7 @@ local ds = '${datasource}';
 
     // Avg Device Load (gauge)
     gauge.new('Avg Device Load')
-    + gauge.panelOptions.withDescription('Average composite load across all devices (60% compute + 40% memory)')
+    + gauge.panelOptions.withDescription('Average composite load across all devices (60% compute + 40% VRAM)')
     + gauge.panelOptions.withGridPos(4, 4, 12, 1)
     + gauge.queryOptions.withTargets([
       prometheus.new(ds, q.avgDeviceLoad)
@@ -93,8 +93,8 @@ local ds = '${datasource}';
     + gauge.options.reduceOptions.withCalcs(['lastNotNull']),
 
     // Memory Saturated (>85%)
-    stat.new('Memory Saturated (>85%)')
-    + stat.panelOptions.withDescription('Devices with memory utilization over 85%')
+    stat.new('VRAM Saturated (>85%)')
+    + stat.panelOptions.withDescription('Devices with VRAM utilization over 85%')
     + stat.panelOptions.withGridPos(4, 4, 16, 1)
     + stat.queryOptions.withTargets([
       prometheus.new(ds, q.memorySaturated)
