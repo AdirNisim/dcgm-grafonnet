@@ -235,7 +235,7 @@
                {
                   "matcher": {
                      "id": "byName",
-                     "options": "Memory %"
+                     "options": "VRAM %"
                   },
                   "properties": [
                      {
@@ -551,7 +551,7 @@
                {
                   "matcher": {
                      "id": "byName",
-                     "options": "RAM Used (MiB)"
+                     "options": "Node RAM Used (MiB)"
                   },
                   "properties": [
                      {
@@ -571,7 +571,7 @@
                {
                   "matcher": {
                      "id": "byName",
-                     "options": "RAM Total (MiB)"
+                     "options": "Node RAM Total (MiB)"
                   },
                   "properties": [
                      {
@@ -666,7 +666,16 @@
                "id": "organize",
                "options": {
                   "excludeByName": {
-                     "Time": true
+                     "Time": true,
+                     "__name__": true,
+                     "container": true,
+                     "endpoint": true,
+                     "job": true,
+                     "namespace": true,
+                     "prometheus": true,
+                     "resource": true,
+                     "service": true,
+                     "unit": true
                   },
                   "indexByName": {
                      "Value #A": 1,
@@ -678,8 +687,8 @@
                   "renameByName": {
                      "Value #A": "CPU Used (cores)",
                      "Value #B": "CPU Total (cores)",
-                     "Value #C": "RAM Used (MiB)",
-                     "Value #D": "RAM Total (MiB)",
+                     "Value #C": "Node RAM Used (MiB)",
+                     "Value #D": "Node RAM Total (MiB)",
                      "node": "Node"
                   }
                }
@@ -1277,7 +1286,7 @@
             "y": 76
          },
          "id": 14,
-         "title": "Memory Capacity Planning",
+         "title": "GPU VRAM Capacity Planning",
          "type": "row"
       },
       {
@@ -1285,7 +1294,7 @@
             "type": "datasource",
             "uid": "-- Mixed --"
          },
-         "description": "Total GPU memory capacity across all devices",
+         "description": "Total GPU VRAM capacity across all devices",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -1329,7 +1338,7 @@
                "legendFormat": "Total Capacity"
             }
          ],
-         "title": "Total Memory Capacity",
+         "title": "Total VRAM Capacity",
          "type": "stat"
       },
       {
@@ -1337,7 +1346,7 @@
             "type": "datasource",
             "uid": "-- Mixed --"
          },
-         "description": "Total GPU memory currently in use",
+         "description": "Total GPU VRAM currently in use",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -1381,7 +1390,7 @@
                "legendFormat": "Used"
             }
          ],
-         "title": "Memory In Use",
+         "title": "VRAM In Use",
          "type": "stat"
       },
       {
@@ -1440,10 +1449,10 @@
                   "uid": "${datasource}"
                },
                "expr": "avg((DCGM_FI_DEV_FB_USED / (DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE)) * 100)",
-               "legendFormat": "Avg Memory %"
+               "legendFormat": "Avg VRAM %"
             }
          ],
-         "title": "Avg Memory Utilization",
+         "title": "Avg VRAM Utilization",
          "type": "gauge"
       },
       {
@@ -1711,7 +1720,7 @@
                "legendFormat": "{{modelName}} GPU{{gpu}} MIG{{GPU_I_ID}} ({{GPU_I_PROFILE}})"
             }
          ],
-         "title": "Memory Utilization % — $hostname",
+         "title": "VRAM Utilization % — $hostname",
          "type": "timeseries"
       },
       {
@@ -1829,7 +1838,7 @@
                "legendFormat": "{{Hostname}} / {{modelName}} / {{exported_pod}}"
             }
          ],
-         "title": "Workload Memory Over Time",
+         "title": "Workload VRAM Over Time",
          "type": "timeseries"
       },
       {
@@ -1895,7 +1904,7 @@
                {
                   "matcher": {
                      "id": "byName",
-                     "options": "RAM Used (MiB)"
+                     "options": "Node RAM Used (MiB)"
                   },
                   "properties": [
                      {
@@ -1915,7 +1924,7 @@
                {
                   "matcher": {
                      "id": "byName",
-                     "options": "RAM Requested (MiB)"
+                     "options": "Node RAM Requested (MiB)"
                   },
                   "properties": [
                      {
@@ -1970,7 +1979,7 @@
             "sortBy": [
                {
                   "desc": true,
-                  "displayName": "RAM Used (MiB)"
+                  "displayName": "Node RAM Used (MiB)"
                }
             ]
          },
@@ -2040,8 +2049,8 @@
                   "renameByName": {
                      "Value #A": "CPU Used (m)",
                      "Value #B": "CPU Requested (m)",
-                     "Value #C": "RAM Used (MiB)",
-                     "Value #D": "RAM Requested (MiB)",
+                     "Value #C": "Node RAM Used (MiB)",
+                     "Value #D": "Node RAM Requested (MiB)",
                      "deployment": "Deployment",
                      "namespace": "Namespace"
                   }

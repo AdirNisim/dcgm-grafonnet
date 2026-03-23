@@ -103,7 +103,7 @@ local ds = '${datasource}';
       + prometheus.withInstant(true)
       + prometheus.withRefId('A'),
 
-      // B: Memory %
+      // B: VRAM %
       prometheus.new(ds, q.inventoryMemoryPct)
       + prometheus.withFormat('table')
       + prometheus.withInstant(true)
@@ -144,8 +144,8 @@ local ds = '${datasource}';
         + table.standardOptions.withMax(100)
         + table.standardOptions.thresholds.withSteps(t.tableBgCompute)
       ),
-      // Memory % — color background
-      table.standardOptions.override.byName.new('Memory %')
+      // VRAM % — color background
+      table.standardOptions.override.byName.new('VRAM %')
       + table.standardOptions.override.byName.withPropertiesFromOptions(
         table.fieldConfig.defaults.custom.withDisplayMode('color-background')
         + table.standardOptions.withMin(0)
@@ -268,13 +268,13 @@ local ds = '${datasource}';
         table.standardOptions.withDecimals(0)
         + table.fieldConfig.defaults.custom.withWidth(140)
       ),
-      table.standardOptions.override.byName.new('RAM Used (MiB)')
+      table.standardOptions.override.byName.new('Node RAM Used (MiB)')
       + table.standardOptions.override.byName.withPropertiesFromOptions(
         table.standardOptions.withUnit('decmbytes')
         + table.standardOptions.withDecimals(0)
         + table.fieldConfig.defaults.custom.withWidth(140)
       ),
-      table.standardOptions.override.byName.new('RAM Total (MiB)')
+      table.standardOptions.override.byName.new('Node RAM Total (MiB)')
       + table.standardOptions.override.byName.withPropertiesFromOptions(
         table.standardOptions.withUnit('decmbytes')
         + table.standardOptions.withDecimals(0)
@@ -291,7 +291,18 @@ local ds = '${datasource}';
         {
           id: 'organize',
           options: {
-            excludeByName: { Time: true },
+            excludeByName: {
+              Time: true,
+              __name__: true,
+              container: true,
+              endpoint: true,
+              job: true,
+              namespace: true,
+              prometheus: true,
+              resource: true,
+              service: true,
+              unit: true,
+            },
             indexByName: {
               node: 0,
               'Value #A': 1,
@@ -303,8 +314,8 @@ local ds = '${datasource}';
               node: 'Node',
               'Value #A': 'CPU Used (cores)',
               'Value #B': 'CPU Total (cores)',
-              'Value #C': 'RAM Used (MiB)',
-              'Value #D': 'RAM Total (MiB)',
+              'Value #C': 'Node RAM Used (MiB)',
+              'Value #D': 'Node RAM Total (MiB)',
             },
           },
         },

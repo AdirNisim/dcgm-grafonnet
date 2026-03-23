@@ -25,12 +25,12 @@ local tsDefaults =
 
 {
   panels: [
-    row.new('Memory Capacity Planning')
+    row.new('GPU VRAM Capacity Planning')
     + row.withGridPos(76),
 
     // --- Cluster-wide summary stats ---
-    stat.new('Total Memory Capacity')
-    + stat.panelOptions.withDescription('Total GPU memory capacity across all devices')
+    stat.new('Total VRAM Capacity')
+    + stat.panelOptions.withDescription('Total GPU VRAM capacity across all devices')
     + stat.panelOptions.withGridPos(4, 4, 0, 77)
     + stat.queryOptions.withTargets([
       prometheus.new(ds, q.totalMemoryCapacity)
@@ -43,8 +43,8 @@ local tsDefaults =
     + stat.options.withGraphMode('none')
     + stat.options.reduceOptions.withCalcs(['lastNotNull']),
 
-    stat.new('Memory In Use')
-    + stat.panelOptions.withDescription('Total GPU memory currently in use')
+    stat.new('VRAM In Use')
+    + stat.panelOptions.withDescription('Total GPU VRAM currently in use')
     + stat.panelOptions.withGridPos(4, 4, 4, 77)
     + stat.queryOptions.withTargets([
       prometheus.new(ds, q.memoryInUse)
@@ -57,12 +57,12 @@ local tsDefaults =
     + stat.options.withGraphMode('area')
     + stat.options.reduceOptions.withCalcs(['lastNotNull']),
 
-    gauge.new('Avg Memory Utilization')
+    gauge.new('Avg VRAM Utilization')
     + gauge.panelOptions.withDescription('Average VRAM utilization across all devices')
     + gauge.panelOptions.withGridPos(4, 4, 8, 77)
     + gauge.queryOptions.withTargets([
       prometheus.new(ds, q.avgMemoryUtil)
-      + prometheus.withLegendFormat('Avg Memory %'),
+      + prometheus.withLegendFormat('Avg VRAM %'),
     ])
     + gauge.standardOptions.withUnit('percent')
     + gauge.standardOptions.withMin(0)
@@ -119,7 +119,7 @@ local tsDefaults =
 
     // --- Per-node VRAM utilization (repeated) ---
     // Two queries: whole GPUs (no MIG ID in legend) + MIG instances (profile in legend)
-    timeSeries.new('Memory Utilization % — $hostname')
+    timeSeries.new('VRAM Utilization % — $hostname')
     + timeSeries.panelOptions.withDescription('VRAM utilization per device on this node. Whole GPUs and MIG instances shown separately to avoid legend clutter.')
     + timeSeries.panelOptions.withGridPos(8, 24, 0, 82)
     + timeSeries.panelOptions.withRepeat('hostname')
@@ -165,7 +165,7 @@ local tsDefaults =
     + barGauge.options.withShowUnfilled(true),
 
     // --- Workload memory over time (cluster-wide) ---
-    timeSeries.new('Workload Memory Over Time')
+    timeSeries.new('Workload VRAM Over Time')
     + timeSeries.panelOptions.withDescription('VRAM used by workloads over time')
     + timeSeries.panelOptions.withGridPos(8, 24, 0, 100)
     + timeSeries.queryOptions.withTargets([
