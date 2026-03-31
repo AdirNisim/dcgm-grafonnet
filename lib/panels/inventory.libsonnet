@@ -94,7 +94,7 @@ local ds = '${datasource}';
     // RefIds after removing composite load: A=Compute, B=MemoryPct, C=UsedGB, D=TotalGB, E=Power, F=Temp
     table.new('Device Inventory & Status — $hostname')
     + table.panelOptions.withDescription('Per-node GPU device inventory. Sorted by compute utilization.')
-    + table.panelOptions.withGridPos(12, 24, 0, 10)
+    + table.panelOptions.withGridPos(12, 12, 0, 9)
     + table.panelOptions.withRepeat('hostname')
     + table.queryOptions.withTargets([
       // A: Compute % (also brings modelName + GPU_I_PROFILE into the merge)
@@ -225,11 +225,55 @@ local ds = '${datasource}';
       ],
     },
 
+    // Deployments on Node — repeated per node
+    table.new('Deployments on Node — $hostname')
+    + table.panelOptions.withDescription('Active deployments per node (kube-state-metrics ReplicaSet owner join)')
+    + table.panelOptions.withGridPos(8, 12, 0, 21)
+    + table.panelOptions.withRepeat('hostname')
+    + table.queryOptions.withTargets([
+      prometheus.new(ds, q.deploymentsPerNode)
+      + prometheus.withFormat('table')
+      + prometheus.withInstant(true)
+      + prometheus.withRefId('A'),
+    ])
+    + table.options.withShowHeader(true)
+    + table.options.withSortBy([{ desc: false, displayName: 'Namespace' }])
+    + table.standardOptions.withOverrides([
+      table.standardOptions.override.byName.new('Deployment')
+      + table.standardOptions.override.byName.withPropertiesFromOptions(
+        table.fieldConfig.defaults.custom.withWidth(260)
+      ),
+      table.standardOptions.override.byName.new('Namespace')
+      + table.standardOptions.override.byName.withPropertiesFromOptions(
+        table.fieldConfig.defaults.custom.withWidth(180)
+      ),
+    ])
+    + {
+      transformations: [
+        {
+          id: 'organize',
+          options: {
+            excludeByName: { Time: true, 'Value #A': true },
+            indexByName: {
+              node: 0,
+              namespace: 1,
+              deployment: 2,
+            },
+            renameByName: {
+              node: 'Node',
+              namespace: 'Namespace',
+              deployment: 'Deployment',
+            },
+          },
+        },
+      ],
+    },
+
     // Node CPU & RAM — repeated per node
     // Note: kube-state-metrics uses "node" label; ensure $hostname values match node names.
     table.new('Node Resources — $hostname')
     + table.panelOptions.withDescription('Node CPU and RAM from kube-state-metrics / cAdvisor. Node label must match $hostname.')
-    + table.panelOptions.withGridPos(5, 24, 0, 23)
+    + table.panelOptions.withGridPos(5, 12, 0, 29)
     + table.panelOptions.withRepeat('hostname')
     + table.queryOptions.withTargets([
       // A: CPU used (cores)
@@ -268,13 +312,13 @@ local ds = '${datasource}';
         table.standardOptions.withDecimals(0)
         + table.fieldConfig.defaults.custom.withWidth(140)
       ),
-      table.standardOptions.override.byName.new('RAM Used (MiB)')
+      table.standardOptions.override.byName.new('Node RAM Used (MiB)')
       + table.standardOptions.override.byName.withPropertiesFromOptions(
         table.standardOptions.withUnit('decmbytes')
         + table.standardOptions.withDecimals(0)
         + table.fieldConfig.defaults.custom.withWidth(140)
       ),
-      table.standardOptions.override.byName.new('RAM Total (MiB)')
+      table.standardOptions.override.byName.new('Node RAM Total (MiB)')
       + table.standardOptions.override.byName.withPropertiesFromOptions(
         table.standardOptions.withUnit('decmbytes')
         + table.standardOptions.withDecimals(0)
@@ -291,7 +335,18 @@ local ds = '${datasource}';
         {
           id: 'organize',
           options: {
-            excludeByName: { Time: true },
+            excludeByName: {
+              Time: true,
+              __name__: true,
+              container: true,
+              endpoint: true,
+              job: true,
+              namespace: true,
+              prometheus: true,
+              resource: true,
+              service: true,
+              unit: true,
+            },
             indexByName: {
               node: 0,
               'Value #A': 1,
@@ -303,52 +358,8 @@ local ds = '${datasource}';
               node: 'Node',
               'Value #A': 'CPU Used (cores)',
               'Value #B': 'CPU Total (cores)',
-              'Value #C': 'RAM Used (MiB)',
-              'Value #D': 'RAM Total (MiB)',
-            },
-          },
-        },
-      ],
-    },
-
-    // Deployments on Node — repeated per node
-    table.new('Deployments on Node — $hostname')
-    + table.panelOptions.withDescription('Active deployments per node (kube-state-metrics ReplicaSet owner join)')
-    + table.panelOptions.withGridPos(8, 24, 0, 29)
-    + table.panelOptions.withRepeat('hostname')
-    + table.queryOptions.withTargets([
-      prometheus.new(ds, q.deploymentsPerNode)
-      + prometheus.withFormat('table')
-      + prometheus.withInstant(true)
-      + prometheus.withRefId('A'),
-    ])
-    + table.options.withShowHeader(true)
-    + table.options.withSortBy([{ desc: false, displayName: 'Namespace' }])
-    + table.standardOptions.withOverrides([
-      table.standardOptions.override.byName.new('Deployment')
-      + table.standardOptions.override.byName.withPropertiesFromOptions(
-        table.fieldConfig.defaults.custom.withWidth(260)
-      ),
-      table.standardOptions.override.byName.new('Namespace')
-      + table.standardOptions.override.byName.withPropertiesFromOptions(
-        table.fieldConfig.defaults.custom.withWidth(180)
-      ),
-    ])
-    + {
-      transformations: [
-        {
-          id: 'organize',
-          options: {
-            excludeByName: { Time: true, 'Value #A': true },
-            indexByName: {
-              node: 0,
-              namespace: 1,
-              deployment: 2,
-            },
-            renameByName: {
-              node: 'Node',
-              namespace: 'Namespace',
-              deployment: 'Deployment',
+              'Value #C': 'Node RAM Used (MiB)',
+              'Value #D': 'Node RAM Total (MiB)',
             },
           },
         },

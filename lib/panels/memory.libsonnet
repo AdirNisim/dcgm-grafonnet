@@ -26,12 +26,12 @@ local tsDefaults =
 {
   panels: [
     row.new('Memory Capacity Planning')
-    + row.withGridPos(76),
+    + row.withGridPos(83),
 
     // --- Cluster-wide summary stats ---
     stat.new('Total Memory Capacity')
     + stat.panelOptions.withDescription('Total GPU memory capacity across all devices')
-    + stat.panelOptions.withGridPos(4, 4, 0, 77)
+    + stat.panelOptions.withGridPos(4, 4, 0, 84)
     + stat.queryOptions.withTargets([
       prometheus.new(ds, q.totalMemoryCapacity)
       + prometheus.withLegendFormat('Total Capacity'),
@@ -45,7 +45,7 @@ local tsDefaults =
 
     stat.new('Memory In Use')
     + stat.panelOptions.withDescription('Total GPU memory currently in use')
-    + stat.panelOptions.withGridPos(4, 4, 4, 77)
+    + stat.panelOptions.withGridPos(4, 4, 4, 84)
     + stat.queryOptions.withTargets([
       prometheus.new(ds, q.memoryInUse)
       + prometheus.withLegendFormat('Used'),
@@ -59,7 +59,7 @@ local tsDefaults =
 
     gauge.new('Avg Memory Utilization')
     + gauge.panelOptions.withDescription('Average VRAM utilization across all devices')
-    + gauge.panelOptions.withGridPos(4, 4, 8, 77)
+    + gauge.panelOptions.withGridPos(4, 4, 8, 84)
     + gauge.queryOptions.withTargets([
       prometheus.new(ds, q.avgMemoryUtil)
       + prometheus.withLegendFormat('Avg Memory %'),
@@ -75,7 +75,7 @@ local tsDefaults =
 
     stat.new('OOM Risk %')
     + stat.panelOptions.withDescription('Percentage of devices at risk of OOM (>85% VRAM)')
-    + stat.panelOptions.withGridPos(4, 4, 12, 77)
+    + stat.panelOptions.withGridPos(4, 4, 12, 84)
     + stat.queryOptions.withTargets([
       prometheus.new(ds, q.oomRiskPct)
       + prometheus.withLegendFormat('OOM Risk %'),
@@ -91,7 +91,7 @@ local tsDefaults =
 
     stat.new('Avg Temperature')
     + stat.panelOptions.withDescription('Average temperature across all GPUs')
-    + stat.panelOptions.withGridPos(4, 4, 16, 77)
+    + stat.panelOptions.withGridPos(4, 4, 16, 84)
     + stat.queryOptions.withTargets([
       prometheus.new(ds, q.avgTemperature)
       + prometheus.withLegendFormat('Avg Temp'),
@@ -105,7 +105,7 @@ local tsDefaults =
 
     stat.new('Avg Power per Device')
     + stat.panelOptions.withDescription('Average power usage per device')
-    + stat.panelOptions.withGridPos(4, 4, 20, 77)
+    + stat.panelOptions.withGridPos(4, 4, 20, 84)
     + stat.queryOptions.withTargets([
       prometheus.new(ds, q.avgPower)
       + prometheus.withLegendFormat('Avg Power'),
@@ -121,7 +121,7 @@ local tsDefaults =
     // Two queries: whole GPUs (no MIG ID in legend) + MIG instances (profile in legend)
     timeSeries.new('Memory Utilization % — $hostname')
     + timeSeries.panelOptions.withDescription('VRAM utilization per device on this node. Whole GPUs and MIG instances shown separately to avoid legend clutter.')
-    + timeSeries.panelOptions.withGridPos(8, 24, 0, 82)
+    + timeSeries.panelOptions.withGridPos(8, 24, 0, 89)
     + timeSeries.panelOptions.withRepeat('hostname')
     + timeSeries.queryOptions.withTargets([
       // Whole GPUs — legend without MIG noise
@@ -151,7 +151,7 @@ local tsDefaults =
     // --- Per-node VRAM by namespace (repeated) ---
     barGauge.new('VRAM by Namespace — $hostname')
     + barGauge.panelOptions.withDescription('VRAM used per namespace on this node')
-    + barGauge.panelOptions.withGridPos(8, 24, 0, 91)
+    + barGauge.panelOptions.withGridPos(8, 24, 0, 98)
     + barGauge.panelOptions.withRepeat('hostname')
     + barGauge.queryOptions.withTargets([
       prometheus.new(ds, q.memoryByNamespacePerNode)
@@ -167,7 +167,7 @@ local tsDefaults =
     // --- Workload memory over time (cluster-wide) ---
     timeSeries.new('Workload Memory Over Time')
     + timeSeries.panelOptions.withDescription('VRAM used by workloads over time')
-    + timeSeries.panelOptions.withGridPos(8, 24, 0, 100)
+    + timeSeries.panelOptions.withGridPos(8, 24, 0, 107)
     + timeSeries.queryOptions.withTargets([
       prometheus.new(ds, q.workloadMemoryOverTime)
       + prometheus.withLegendFormat('{{Hostname}} / {{modelName}} / {{exported_pod}}'),

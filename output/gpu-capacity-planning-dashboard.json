@@ -148,7 +148,7 @@
                   "type": "prometheus",
                   "uid": "${datasource}"
                },
-               "expr": "(\n  clamp_max(\n    count by (Hostname, modelName, gpu, GPU_I_ID, GPU_I_PROFILE, UUID, exported_pod) (\n      DCGM_FI_DEV_FB_USED{exported_pod!=\"\"}\n    ),\n    1\n  )\n)\nor\n(\n  (\n    count by (Hostname, modelName, gpu, GPU_I_ID, GPU_I_PROFILE, UUID) (DCGM_FI_DEV_FB_USED)\n    unless\n    count by (Hostname, modelName, gpu, GPU_I_ID, GPU_I_PROFILE, UUID) (DCGM_FI_DEV_FB_USED{exported_pod!=\"\"})\n  ) * 0\n)\n",
+               "expr": "(\n  clamp_max(\n    count by (Hostname, modelName, gpu, GPU_I_ID, GPU_I_PROFILE, UUID, exported_pod) (\n      DCGM_FI_DEV_FB_USED{exported_pod!=\"\",Hostname=~\"$hostname\"}\n    ),\n    1\n  )\n)\nor\n(\n  (\n    count by (Hostname, modelName, gpu, GPU_I_ID, GPU_I_PROFILE, UUID) (DCGM_FI_DEV_FB_USED{Hostname=~\"$hostname\"})\n    unless\n    count by (Hostname, modelName, gpu, GPU_I_ID, GPU_I_PROFILE, UUID) (DCGM_FI_DEV_FB_USED{exported_pod!=\"\", Hostname=~\"$hostname\"})\n  ) * 0\n)\n",
                "format": "table",
                "instant": true,
                "refId": "A"
@@ -386,9 +386,9 @@
          },
          "gridPos": {
             "h": 12,
-            "w": 24,
+            "w": 12,
             "x": 0,
-            "y": 10
+            "y": 9
          },
          "id": 3,
          "options": {
@@ -513,6 +513,94 @@
             "type": "datasource",
             "uid": "-- Mixed --"
          },
+         "description": "Active deployments per node (kube-state-metrics ReplicaSet owner join)",
+         "fieldConfig": {
+            "overrides": [
+               {
+                  "matcher": {
+                     "id": "byName",
+                     "options": "Deployment"
+                  },
+                  "properties": [
+                     {
+                        "id": "custom.width",
+                        "value": 260
+                     }
+                  ]
+               },
+               {
+                  "matcher": {
+                     "id": "byName",
+                     "options": "Namespace"
+                  },
+                  "properties": [
+                     {
+                        "id": "custom.width",
+                        "value": 180
+                     }
+                  ]
+               }
+            ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 21
+         },
+         "id": 4,
+         "options": {
+            "showHeader": true,
+            "sortBy": [
+               {
+                  "desc": false,
+                  "displayName": "Namespace"
+               }
+            ]
+         },
+         "pluginVersion": "v11.4.0",
+         "repeat": "hostname",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "${datasource}"
+               },
+               "expr": "count by (node, deployment, namespace) (\n  kube_pod_info{node=~\"$hostname\"}\n  * on(pod, namespace) group_left(deployment)\n  label_replace(\n    kube_pod_owner{owner_kind=\"ReplicaSet\"},\n    \"deployment\", \"$1\", \"owner_name\", \"(.+)-[^-]+\"\n  )\n)\n",
+               "format": "table",
+               "instant": true,
+               "refId": "A"
+            }
+         ],
+         "title": "Deployments on Node — $hostname",
+         "transformations": [
+            {
+               "id": "organize",
+               "options": {
+                  "excludeByName": {
+                     "Time": true,
+                     "Value #A": true
+                  },
+                  "indexByName": {
+                     "deployment": 2,
+                     "namespace": 1,
+                     "node": 0
+                  },
+                  "renameByName": {
+                     "deployment": "Deployment",
+                     "namespace": "Namespace",
+                     "node": "Node"
+                  }
+               }
+            }
+         ],
+         "type": "table"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
          "description": "Node CPU and RAM from kube-state-metrics / cAdvisor. Node label must match $hostname.",
          "fieldConfig": {
             "overrides": [
@@ -551,7 +639,7 @@
                {
                   "matcher": {
                      "id": "byName",
-                     "options": "RAM Used (MiB)"
+                     "options": "Node RAM Used (MiB)"
                   },
                   "properties": [
                      {
@@ -571,7 +659,7 @@
                {
                   "matcher": {
                      "id": "byName",
-                     "options": "RAM Total (MiB)"
+                     "options": "Node RAM Total (MiB)"
                   },
                   "properties": [
                      {
@@ -604,11 +692,11 @@
          },
          "gridPos": {
             "h": 5,
-            "w": 24,
+            "w": 12,
             "x": 0,
-            "y": 23
+            "y": 29
          },
-         "id": 4,
+         "id": 5,
          "options": {
             "showHeader": true
          },
@@ -666,7 +754,16 @@
                "id": "organize",
                "options": {
                   "excludeByName": {
-                     "Time": true
+                     "Time": true,
+                     "__name__": true,
+                     "container": true,
+                     "endpoint": true,
+                     "job": true,
+                     "namespace": true,
+                     "prometheus": true,
+                     "resource": true,
+                     "service": true,
+                     "unit": true
                   },
                   "indexByName": {
                      "Value #A": 1,
@@ -678,96 +775,8 @@
                   "renameByName": {
                      "Value #A": "CPU Used (cores)",
                      "Value #B": "CPU Total (cores)",
-                     "Value #C": "RAM Used (MiB)",
-                     "Value #D": "RAM Total (MiB)",
-                     "node": "Node"
-                  }
-               }
-            }
-         ],
-         "type": "table"
-      },
-      {
-         "datasource": {
-            "type": "datasource",
-            "uid": "-- Mixed --"
-         },
-         "description": "Active deployments per node (kube-state-metrics ReplicaSet owner join)",
-         "fieldConfig": {
-            "overrides": [
-               {
-                  "matcher": {
-                     "id": "byName",
-                     "options": "Deployment"
-                  },
-                  "properties": [
-                     {
-                        "id": "custom.width",
-                        "value": 260
-                     }
-                  ]
-               },
-               {
-                  "matcher": {
-                     "id": "byName",
-                     "options": "Namespace"
-                  },
-                  "properties": [
-                     {
-                        "id": "custom.width",
-                        "value": 180
-                     }
-                  ]
-               }
-            ]
-         },
-         "gridPos": {
-            "h": 8,
-            "w": 24,
-            "x": 0,
-            "y": 29
-         },
-         "id": 5,
-         "options": {
-            "showHeader": true,
-            "sortBy": [
-               {
-                  "desc": false,
-                  "displayName": "Namespace"
-               }
-            ]
-         },
-         "pluginVersion": "v11.4.0",
-         "repeat": "hostname",
-         "targets": [
-            {
-               "datasource": {
-                  "type": "prometheus",
-                  "uid": "${datasource}"
-               },
-               "expr": "count by (node, deployment, namespace) (\n  kube_pod_info{node=~\"$hostname\"}\n  * on(pod, namespace) group_left(deployment)\n  label_replace(\n    kube_pod_owner{owner_kind=\"ReplicaSet\"},\n    \"deployment\", \"$1\", \"owner_name\", \"(.+)-[^-]+\"\n  )\n)\n",
-               "format": "table",
-               "instant": true,
-               "refId": "A"
-            }
-         ],
-         "title": "Deployments on Node — $hostname",
-         "transformations": [
-            {
-               "id": "organize",
-               "options": {
-                  "excludeByName": {
-                     "Time": true,
-                     "Value #A": true
-                  },
-                  "indexByName": {
-                     "deployment": 2,
-                     "namespace": 1,
-                     "node": 0
-                  },
-                  "renameByName": {
-                     "deployment": "Deployment",
-                     "namespace": "Namespace",
+                     "Value #C": "Node RAM Used (MiB)",
+                     "Value #D": "Node RAM Total (MiB)",
                      "node": "Node"
                   }
                }
@@ -781,7 +790,7 @@
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 38
+            "y": 34
          },
          "id": 6,
          "title": "Operational Health",
@@ -827,7 +836,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 39
+            "y": 35
          },
          "id": 7,
          "options": {
@@ -907,7 +916,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 39
+            "y": 35
          },
          "id": 8,
          "options": {
@@ -981,7 +990,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 48
+            "y": 43
          },
          "id": 9,
          "options": {
@@ -1053,7 +1062,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 48
+            "y": 43
          },
          "id": 10,
          "options": {
@@ -1078,7 +1087,7 @@
                   "type": "prometheus",
                   "uid": "${datasource}"
                },
-               "expr": "avg by (modelName) (DCGM_FI_DEV_SM_CLOCK{exported_namespace!=\"\"})",
+               "expr": "avg by (modelName) (DCGM_FI_DEV_SM_CLOCK{exported_namespace!=\"\",Hostname=~\"$hostname\"})",
                "legendFormat": "{{modelName}}"
             }
          ],
@@ -1091,11 +1100,264 @@
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 57
+            "y": 51
          },
          "id": 11,
-         "title": "Device Load Analysis",
+         "title": "Node & PV/PVC Storage",
          "type": "row"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "description": "Average local disk utilization across selected nodes. Source: node-exporter (node_filesystem_*). High values risk DiskPressure and pod eviction.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "max": 100,
+               "min": 0,
+               "thresholds": {
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     },
+                     {
+                        "color": "#EAB839",
+                        "value": 75
+                     },
+                     {
+                        "color": "red",
+                        "value": 90
+                     }
+                  ]
+               },
+               "unit": "percent"
+            }
+         },
+         "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 0,
+            "y": 52
+         },
+         "id": 12,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ]
+            }
+         },
+         "pluginVersion": "v11.4.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "${datasource}"
+               },
+               "expr": "avg(\n  100 - (\n    node_filesystem_avail_bytes{mountpoint=\"/\", fstype!=\"tmpfs\", instance=~\"$hostname\"}\n    / node_filesystem_size_bytes{mountpoint=\"/\", fstype!=\"tmpfs\", instance=~\"$hostname\"}\n    * 100\n  )\n)\n",
+               "legendFormat": "Avg Disk %"
+            }
+         ],
+         "title": "Avg Node Disk Used %",
+         "type": "stat"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "description": "Number of Persistent Volume Claims in selected namespaces. Source: kubelet (kubelet_volume_stats_*).",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "thresholds": {
+                  "steps": [
+                     {
+                        "color": "blue",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "short"
+            }
+         },
+         "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 8,
+            "y": 52
+         },
+         "id": 13,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ]
+            }
+         },
+         "pluginVersion": "v11.4.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "${datasource}"
+               },
+               "expr": "count(kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", node=~\"$hostname\"}) or vector(0)",
+               "legendFormat": "PVCs"
+            }
+         ],
+         "title": "Total PVCs",
+         "type": "stat"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "description": "PVCs with storage utilization above 80%. These are at risk of running out of space — investigate or expand.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "thresholds": {
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     },
+                     {
+                        "color": "#EAB839",
+                        "value": 1
+                     },
+                     {
+                        "color": "red",
+                        "value": 3
+                     }
+                  ]
+               },
+               "unit": "short"
+            }
+         },
+         "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 16,
+            "y": 52
+         },
+         "id": 14,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ]
+            }
+         },
+         "pluginVersion": "v11.4.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "${datasource}"
+               },
+               "expr": "count(\n  kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", node=~\"$hostname\"}\n  / kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", node=~\"$hostname\"}\n  > 0.80\n) or vector(0)\n",
+               "legendFormat": "Critical"
+            }
+         ],
+         "title": "PVCs > 80%",
+         "type": "stat"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "description": "Local disk utilization over time for this node. Source: node-exporter. Mountpoint: /.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "custom": {
+                  "drawStyle": "line",
+                  "fillOpacity": 10,
+                  "lineInterpolation": "smooth",
+                  "lineWidth": 2,
+                  "showPoints": "never",
+                  "spanNulls": false,
+                  "stacking": {
+                     "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                     "mode": "line"
+                  }
+               },
+               "max": 100,
+               "min": 0,
+               "thresholds": {
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     },
+                     {
+                        "color": "#EAB839",
+                        "value": 75
+                     },
+                     {
+                        "color": "red",
+                        "value": 90
+                     }
+                  ]
+               },
+               "unit": "percent"
+            }
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 56
+         },
+         "id": 15,
+         "options": {
+            "legend": {
+               "displayMode": "list",
+               "placement": "bottom",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "desc"
+            }
+         },
+         "pluginVersion": "v11.4.0",
+         "repeat": "hostname",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "${datasource}"
+               },
+               "expr": "100 - (\n  node_filesystem_avail_bytes{mountpoint=\"/\", fstype!=\"tmpfs\", instance=~\"$hostname\"}\n  / node_filesystem_size_bytes{mountpoint=\"/\", fstype!=\"tmpfs\", instance=~\"$hostname\"}\n  * 100\n)\n",
+               "legendFormat": "Disk Used %"
+            }
+         ],
+         "title": "Node Disk Usage — $hostname",
+         "type": "timeseries"
       },
       {
          "datasource": {
@@ -1147,9 +1409,9 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 58
+            "y": 64
          },
-         "id": 12,
+         "id": 16,
          "options": {
             "legend": {
                "calcs": [
@@ -1175,7 +1437,7 @@
                   "type": "prometheus",
                   "uid": "${datasource}"
                },
-               "expr": "topk(10,\n  avg by (gpu, GPU_I_ID, GPU_I_PROFILE, Hostname, modelName, UUID) (\n    DCGM_FI_PROF_GR_ENGINE_ACTIVE * 100\n  )\n)\n",
+               "expr": "topk(10,\n  avg by (gpu, GPU_I_ID, GPU_I_PROFILE, Hostname, modelName, UUID) (\n    DCGM_FI_PROF_GR_ENGINE_ACTIVE{Hostname=~\"$hostname\"} * 100\n  )\n)\n",
                "legendFormat": "{{Hostname}}-GPU{{gpu}}-{{GPU_I_PROFILE}}"
             }
          ],
@@ -1187,86 +1449,212 @@
             "type": "datasource",
             "uid": "-- Mixed --"
          },
-         "description": "GR engine active % per GPU/MIG device on this node",
+         "description": "Persistent Volume Claim utilization per namespace. Source: kubelet (kubelet_volume_stats_*). Sorted by Used % descending to surface full PVCs.",
          "fieldConfig": {
-            "defaults": {
-               "color": {
-                  "mode": "palette-classic"
-               },
-               "custom": {
-                  "drawStyle": "line",
-                  "fillOpacity": 10,
-                  "lineInterpolation": "smooth",
-                  "lineWidth": 2,
-                  "showPoints": "never",
-                  "spanNulls": false,
-                  "stacking": {
-                     "mode": "none"
+            "overrides": [
+               {
+                  "matcher": {
+                     "id": "byName",
+                     "options": "Used %"
                   },
-                  "thresholdsStyle": {
-                     "mode": "line"
-                  }
-               },
-               "max": 100,
-               "min": 0,
-               "thresholds": {
-                  "steps": [
+                  "properties": [
                      {
-                        "color": "green",
-                        "value": null
+                        "id": "custom.displayMode",
+                        "value": "color-background"
                      },
                      {
-                        "color": "#EAB839",
-                        "value": 60
+                        "id": "custom.width",
+                        "value": 120
                      },
                      {
-                        "color": "red",
-                        "value": 85
+                        "id": "decimals",
+                        "value": 1
+                     },
+                     {
+                        "id": "max",
+                        "value": 100
+                     },
+                     {
+                        "id": "min",
+                        "value": 0
+                     },
+                     {
+                        "id": "thresholds",
+                        "value": {
+                           "steps": [
+                              {
+                                 "color": "rgba(50, 172, 45, 0.2)",
+                                 "value": null
+                              },
+                              {
+                                 "color": "rgba(237, 129, 40, 0.2)",
+                                 "value": 75
+                              },
+                              {
+                                 "color": "rgba(245, 54, 54, 0.2)",
+                                 "value": 90
+                              }
+                           ]
+                        }
+                     },
+                     {
+                        "id": "unit",
+                        "value": "percent"
                      }
                   ]
                },
-               "unit": "percent"
-            }
+               {
+                  "matcher": {
+                     "id": "byName",
+                     "options": "Used"
+                  },
+                  "properties": [
+                     {
+                        "id": "custom.width",
+                        "value": 120
+                     },
+                     {
+                        "id": "decimals",
+                        "value": 1
+                     },
+                     {
+                        "id": "unit",
+                        "value": "decbytes"
+                     }
+                  ]
+               },
+               {
+                  "matcher": {
+                     "id": "byName",
+                     "options": "Capacity"
+                  },
+                  "properties": [
+                     {
+                        "id": "custom.width",
+                        "value": 120
+                     },
+                     {
+                        "id": "decimals",
+                        "value": 1
+                     },
+                     {
+                        "id": "unit",
+                        "value": "decbytes"
+                     }
+                  ]
+               },
+               {
+                  "matcher": {
+                     "id": "byName",
+                     "options": "Namespace"
+                  },
+                  "properties": [
+                     {
+                        "id": "custom.width",
+                        "value": 200
+                     }
+                  ]
+               },
+               {
+                  "matcher": {
+                     "id": "byName",
+                     "options": "PVC"
+                  },
+                  "properties": [
+                     {
+                        "id": "custom.width",
+                        "value": 300
+                     }
+                  ]
+               }
+            ]
          },
          "gridPos": {
-            "h": 8,
+            "h": 10,
             "w": 24,
             "x": 0,
-            "y": 67
+            "y": 72
          },
-         "id": 13,
+         "id": 17,
          "options": {
-            "legend": {
-               "calcs": [
-                  "mean",
-                  "max",
-                  "last"
-               ],
-               "displayMode": "table",
-               "placement": "right",
-               "showLegend": true,
-               "sortBy": "Last",
-               "sortDesc": true
-            },
-            "tooltip": {
-               "mode": "multi",
-               "sort": "desc"
-            }
+            "showHeader": true,
+            "sortBy": [
+               {
+                  "desc": true,
+                  "displayName": "Used %"
+               }
+            ]
          },
          "pluginVersion": "v11.4.0",
-         "repeat": "hostname",
          "targets": [
             {
                "datasource": {
                   "type": "prometheus",
                   "uid": "${datasource}"
                },
-               "expr": "avg by (gpu, GPU_I_ID, Hostname, modelName, UUID) (\n  DCGM_FI_PROF_GR_ENGINE_ACTIVE{Hostname=~\"$hostname\"} * 100\n)\n",
-               "legendFormat": "{{modelName}} GPU{{gpu}} {{GPU_I_PROFILE}}"
+               "expr": "kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", node=~\"$hostname\"}\n/ kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", node=~\"$hostname\"}\n* 100\n",
+               "format": "table",
+               "instant": true,
+               "refId": "A"
+            },
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "${datasource}"
+               },
+               "expr": "kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", node=~\"$hostname\"}",
+               "format": "table",
+               "instant": true,
+               "refId": "B"
+            },
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "${datasource}"
+               },
+               "expr": "kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", node=~\"$hostname\"}",
+               "format": "table",
+               "instant": true,
+               "refId": "C"
             }
          ],
-         "title": "Compute % by Device — $hostname",
-         "type": "timeseries"
+         "title": "PVC Usage by Namespace",
+         "transformations": [
+            {
+               "id": "merge",
+               "options": { }
+            },
+            {
+               "id": "organize",
+               "options": {
+                  "excludeByName": {
+                     "Time": true,
+                     "__name__": true,
+                     "endpoint": true,
+                     "instance": true,
+                     "job": true,
+                     "metrics_path": true,
+                     "node": true,
+                     "service": true
+                  },
+                  "indexByName": {
+                     "Value #A": 2,
+                     "Value #B": 3,
+                     "Value #C": 4,
+                     "namespace": 0,
+                     "persistentvolumeclaim": 1
+                  },
+                  "renameByName": {
+                     "Value #A": "Used %",
+                     "Value #B": "Used",
+                     "Value #C": "Capacity",
+                     "namespace": "Namespace",
+                     "persistentvolumeclaim": "PVC"
+                  }
+               }
+            }
+         ],
+         "type": "table"
       },
       {
          "collapsed": false,
@@ -1274,9 +1662,9 @@
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 76
+            "y": 83
          },
-         "id": 14,
+         "id": 18,
          "title": "Memory Capacity Planning",
          "type": "row"
       },
@@ -1306,9 +1694,9 @@
             "h": 4,
             "w": 4,
             "x": 0,
-            "y": 77
+            "y": 84
          },
-         "id": 15,
+         "id": 19,
          "options": {
             "colorMode": "value",
             "graphMode": "none",
@@ -1358,9 +1746,9 @@
             "h": 4,
             "w": 4,
             "x": 4,
-            "y": 77
+            "y": 84
          },
-         "id": 16,
+         "id": 20,
          "options": {
             "colorMode": "value",
             "graphMode": "area",
@@ -1420,9 +1808,9 @@
             "h": 4,
             "w": 4,
             "x": 8,
-            "y": 77
+            "y": 84
          },
-         "id": 17,
+         "id": 21,
          "options": {
             "reduceOptions": {
                "calcs": [
@@ -1482,9 +1870,9 @@
             "h": 4,
             "w": 4,
             "x": 12,
-            "y": 77
+            "y": 84
          },
-         "id": 18,
+         "id": 22,
          "options": {
             "colorMode": "background",
             "graphMode": "area",
@@ -1542,9 +1930,9 @@
             "h": 4,
             "w": 4,
             "x": 16,
-            "y": 77
+            "y": 84
          },
-         "id": 19,
+         "id": 23,
          "options": {
             "colorMode": "value",
             "graphMode": "area",
@@ -1594,9 +1982,9 @@
             "h": 4,
             "w": 4,
             "x": 20,
-            "y": 77
+            "y": 84
          },
-         "id": 20,
+         "id": 24,
          "options": {
             "colorMode": "value",
             "graphMode": "area",
@@ -1670,9 +2058,9 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 82
+            "y": 89
          },
-         "id": 21,
+         "id": 25,
          "options": {
             "legend": {
                "calcs": [
@@ -1732,9 +2120,9 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 91
+            "y": 98
          },
-         "id": 22,
+         "id": 26,
          "options": {
             "displayMode": "basic",
             "orientation": "horizontal",
@@ -1800,9 +2188,9 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 100
+            "y": 107
          },
-         "id": 23,
+         "id": 27,
          "options": {
             "legend": {
                "calcs": [
@@ -1838,9 +2226,9 @@
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 109
+            "y": 116
          },
-         "id": 24,
+         "id": 28,
          "title": "Deployment-Level Metrics (Node CPU & RAM)",
          "type": "row"
       },
@@ -1962,9 +2350,9 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 110
+            "y": 117
          },
-         "id": 25,
+         "id": 29,
          "options": {
             "showHeader": true,
             "sortBy": [
@@ -2056,9 +2444,9 @@
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 121
+            "y": 128
          },
-         "id": 26,
+         "id": 30,
          "title": "Workload Analysis",
          "type": "row"
       },
@@ -2207,9 +2595,9 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 122
+            "y": 129
          },
-         "id": 27,
+         "id": 31,
          "options": {
             "showHeader": true,
             "sortBy": [
@@ -2340,9 +2728,9 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 133
+            "y": 140
          },
-         "id": 28,
+         "id": 32,
          "options": {
             "legend": {
                "calcs": [

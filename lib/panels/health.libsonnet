@@ -22,12 +22,12 @@ local tsDefaults =
 {
   panels: [
     row.new('Operational Health')
-    + row.withGridPos(38),
+    + row.withGridPos(34),
 
     // Power Usage by Device — filtered by $hostname
     timeSeries.new('Power Usage by Device')
     + timeSeries.panelOptions.withDescription('Power usage over time per device (filtered by selected nodes)')
-    + timeSeries.panelOptions.withGridPos(8, 12, 0, 39)
+    + timeSeries.panelOptions.withGridPos(8, 12, 0, 35)
     + timeSeries.queryOptions.withTargets([
       prometheus.new(ds, q.powerByDevice)
       + prometheus.withLegendFormat('{{Hostname}}-GPU{{gpu}}-MIG{{GPU_I_ID}}'),
@@ -47,7 +47,7 @@ local tsDefaults =
     // Temperature by Device — filtered by $hostname
     timeSeries.new('Temperature by Device')
     + timeSeries.panelOptions.withDescription('Temperature over time per device (filtered by selected nodes)')
-    + timeSeries.panelOptions.withGridPos(8, 12, 12, 39)
+    + timeSeries.panelOptions.withGridPos(8, 12, 12, 35)
     + timeSeries.queryOptions.withTargets([
       prometheus.new(ds, q.temperatureByDevice)
       + prometheus.withLegendFormat('{{Hostname}}-GPU{{gpu}}-MIG{{GPU_I_ID}}'),
@@ -67,7 +67,7 @@ local tsDefaults =
     // Tensor Utilization by Workload — cluster-wide
     timeSeries.new('Tensor Utilization by Workload')
     + timeSeries.panelOptions.withDescription('Tensor core utilization per workload')
-    + timeSeries.panelOptions.withGridPos(8, 12, 0, 48)
+    + timeSeries.panelOptions.withGridPos(8, 12, 0, 43)
     + timeSeries.queryOptions.withTargets([
       prometheus.new(ds, q.tensorUtilByWorkload)
       + prometheus.withLegendFormat('{{exported_pod}}'),
@@ -89,7 +89,7 @@ local tsDefaults =
     // SM Clock by GPU Model — cluster-wide
     timeSeries.new('SM Clock by GPU Model')
     + timeSeries.panelOptions.withDescription('SM Clock frequency by GPU model')
-    + timeSeries.panelOptions.withGridPos(8, 12, 12, 48)
+    + timeSeries.panelOptions.withGridPos(8, 12, 12, 43)
     + timeSeries.queryOptions.withTargets([
       prometheus.new(ds, q.smClockByModel)
       + prometheus.withLegendFormat('{{modelName}}'),

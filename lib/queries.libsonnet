@@ -59,7 +59,7 @@
   top10DeviceCompute: |||
     topk(10,
       avg by (gpu, GPU_I_ID, GPU_I_PROFILE, Hostname, modelName, UUID) (
-        DCGM_FI_PROF_GR_ENGINE_ACTIVE * 100
+        DCGM_FI_PROF_GR_ENGINE_ACTIVE{Hostname=~"$hostname"} * 100
       )
     )
   |||,
@@ -142,7 +142,7 @@
     (
       clamp_max(
         count by (Hostname, modelName, gpu, GPU_I_ID, GPU_I_PROFILE, UUID, exported_pod) (
-          DCGM_FI_DEV_FB_USED{exported_pod!=""}
+          DCGM_FI_DEV_FB_USED{exported_pod!="",Hostname=~"$hostname"}
         ),
         1
       )
@@ -150,9 +150,9 @@
     or
     (
       (
-        count by (Hostname, modelName, gpu, GPU_I_ID, GPU_I_PROFILE, UUID) (DCGM_FI_DEV_FB_USED)
+        count by (Hostname, modelName, gpu, GPU_I_ID, GPU_I_PROFILE, UUID) (DCGM_FI_DEV_FB_USED{Hostname=~"$hostname"})
         unless
-        count by (Hostname, modelName, gpu, GPU_I_ID, GPU_I_PROFILE, UUID) (DCGM_FI_DEV_FB_USED{exported_pod!=""})
+        count by (Hostname, modelName, gpu, GPU_I_ID, GPU_I_PROFILE, UUID) (DCGM_FI_DEV_FB_USED{exported_pod!="", Hostname=~"$hostname"})
       ) * 0
     )
   |||,
@@ -249,7 +249,7 @@
     'avg by (exported_pod) (DCGM_FI_PROF_PIPE_TENSOR_ACTIVE{exported_pod!=""} * 100)',
 
   smClockByModel:
-    'avg by (modelName) (DCGM_FI_DEV_SM_CLOCK{exported_namespace!=""})',
+    'avg by (modelName) (DCGM_FI_DEV_SM_CLOCK{exported_namespace!="",Hostname=~"$hostname"})',
 
   // --- Reporting queries (used by gpu-weekly-report.jsonnet) ---
   // Cluster-wide averages used by report_summary / report panels
@@ -365,6 +365,50 @@
       - (count(DCGM_FI_DEV_FB_USED{GPU_I_ID!="", exported_pod!=""}) or vector(0))
     ) / count(DCGM_FI_DEV_FB_USED{GPU_I_ID!=""}) * 100 or vector(0)
   |||,
+
+  // --- Node & PV/PVC Storage ---
+  // Node disk usage from node-exporter; PVC metrics from kubelet.
+  // instance=~"$hostname" bridges DCGM Hostname variable to node-exporter instance label.
+  avgNodeDiskUsedPct: |||
+    avg(
+      100 - (
+        node_filesystem_avail_bytes{mountpoint="/", fstype!="tmpfs", instance=~"$hostname"}
+        / node_filesystem_size_bytes{mountpoint="/", fstype!="tmpfs", instance=~"$hostname"}
+        * 100
+      )
+    )
+  |||,
+
+  nodeDiskUsagePct: |||
+    100 - (
+      node_filesystem_avail_bytes{mountpoint="/", fstype!="tmpfs", instance=~"$hostname"}
+      / node_filesystem_size_bytes{mountpoint="/", fstype!="tmpfs", instance=~"$hostname"}
+      * 100
+    )
+  |||,
+
+  totalPvcs:
+    'count(kubelet_volume_stats_capacity_bytes{namespace=~"$namespace", node=~"$hostname"}) or vector(0)',
+
+  pvcsAbove80Pct: |||
+    count(
+      kubelet_volume_stats_used_bytes{namespace=~"$namespace", node=~"$hostname"}
+      / kubelet_volume_stats_capacity_bytes{namespace=~"$namespace", node=~"$hostname"}
+      > 0.80
+    ) or vector(0)
+  |||,
+
+  pvcUsedPct: |||
+    kubelet_volume_stats_used_bytes{namespace=~"$namespace", node=~"$hostname"}
+    / kubelet_volume_stats_capacity_bytes{namespace=~"$namespace", node=~"$hostname"}
+    * 100
+  |||,
+
+  pvcUsedBytes:
+    'kubelet_volume_stats_used_bytes{namespace=~"$namespace", node=~"$hostname"}',
+
+  pvcCapacityBytes:
+    'kubelet_volume_stats_capacity_bytes{namespace=~"$namespace", node=~"$hostname"}',
 
   // --- vLLM Inference Capacity (used by vllm_capacity.libsonnet) ---
   // $namespace = Kubernetes namespace of the vLLM pods.

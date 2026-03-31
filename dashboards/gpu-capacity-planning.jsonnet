@@ -10,8 +10,8 @@ local g = import 'github.com/grafana/grafonnet/gen/grafonnet-latest/main.libsonn
 local deployment = import '../lib/panels/deployment.libsonnet';
 local health = import '../lib/panels/health.libsonnet';
 local inventory = import '../lib/panels/inventory.libsonnet';
-local load = import '../lib/panels/load.libsonnet';
 local memory = import '../lib/panels/memory.libsonnet';
+local storage = import '../lib/panels/storage.libsonnet';
 local workload = import '../lib/panels/workload.libsonnet';
 
 // --- Variables ---
@@ -72,7 +72,7 @@ g.dashboard.new('GPU Capacity Planning Dashboard')
   // Stack-level order: bottom → top
   inventory.panels  // 1. Nodes     — GPU device inventory, node CPU/RAM, deployments per node
   + health.panels  // 2. Platform  — operational health (power, temp, tensor, SM clock)
-  + load.panels  // 3. Platform  — device compute load per node
+  + storage.panels  // 3. Storage   — node disk + PV/PVC utilization + Top 10 compute
   + memory.panels  // 4. Memory    — VRAM capacity planning per node + namespace
   + deployment.panels  // 5. Namespace — CPU & RAM by deployment (kube-state-metrics)
   + workload.panels  // 6. Workload  — per-workload GPU usage table + compute over time

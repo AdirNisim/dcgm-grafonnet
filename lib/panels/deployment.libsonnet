@@ -14,13 +14,13 @@ local ds = '${datasource}';
 {
   panels: [
     row.new('Deployment-Level Metrics (Node CPU & RAM)')
-    + row.withGridPos(109),
+    + row.withGridPos(116),
 
     // CPU & RAM by Deployment (kube-state-metrics + cAdvisor join)
     // Compute % and Memory % here refer to NODE resources, not GPU.
     table.new('CPU & RAM by Deployment')
     + table.panelOptions.withDescription('Node CPU (millicores) and RAM (MiB) usage per Kubernetes deployment. Source: kube-state-metrics + cAdvisor — not DCGM GPU metrics.')
-    + table.panelOptions.withGridPos(10, 24, 0, 110)
+    + table.panelOptions.withGridPos(10, 24, 0, 117)
     + table.queryOptions.withTargets([
       // A: CPU used (millicores)
       prometheus.new(ds, q.deploymentCpuMillicores)

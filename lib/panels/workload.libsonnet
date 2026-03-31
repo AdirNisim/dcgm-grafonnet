@@ -24,14 +24,14 @@ local tsDefaults =
 {
   panels: [
     row.new('Workload Analysis')
-    + row.withGridPos(121),
+    + row.withGridPos(128),
 
     // Workload GPU Usage table
     // Columns: Workload | Namespace | Node | GPU Model | MIG ID | Compute % | VRAM Used (MiB) | VRAM Total (MiB)
     // GPU# removed; Memory% removed; MemGB replaced by MiB Used + MiB Total
     table.new('Workload GPU Usage')
     + table.panelOptions.withDescription('Per-workload GPU usage. VRAM shown as Used/Total (MiB). GPU column removed; Node and GPU Model added.')
-    + table.panelOptions.withGridPos(10, 24, 0, 122)
+    + table.panelOptions.withGridPos(10, 24, 0, 129)
     + table.queryOptions.withTargets([
       // A: Compute % — group-by includes Hostname + modelName
       prometheus.new(ds, q.workloadComputePct)
@@ -135,7 +135,7 @@ local tsDefaults =
     // Pure GR engine active %; composite load formula removed.
     timeSeries.new('Workload Compute % — $hostname')
     + timeSeries.panelOptions.withDescription('GPU compute activity per workload on this node (GR engine active %)')
-    + timeSeries.panelOptions.withGridPos(8, 24, 0, 133)
+    + timeSeries.panelOptions.withGridPos(8, 24, 0, 140)
     + timeSeries.panelOptions.withRepeat('hostname')
     + timeSeries.queryOptions.withTargets([
       prometheus.new(ds, q.workloadComputeOverTime)
